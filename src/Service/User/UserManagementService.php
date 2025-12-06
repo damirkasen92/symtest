@@ -1,0 +1,175 @@
+<?php
+
+namespace App\Service\User;
+
+use App\Entity\User;
+use App\Enum\User\Status;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
+// KISS, YAGNI
+// But i think i overcomplicated it ( lack of experience... )
+
+class UserManagementService
+{
+    private EntityRepository $userRepository;
+
+    public function __construct(
+        private EntityManagerInterface $em,
+        private Security $security,
+        private TokenStorageInterface $tokenStorage
+    ) {
+        // maybe it is not efficient, because it will be loaded on every call
+        $this->userRepository = $this->em->getRepository(User::class);
+    }
+
+    public function indexUsers(array $queryOrder): array
+    {
+        $query = $this->userRepository->createQueryBuilder('u')
+            ->leftJoin(
+                'u.activities',
+                'a',
+                'WITH',
+                'a.id = (SELECT MAX(a2.id) 
+                    FROM App\Entity\UserActivity a2
+                    WHERE a2.user = u.id
+                )'
+            )
+            ->addSelect('a');
+
+        // i made it simple, because there are few fields to order by
+        $query = $this->getOrdering($query, $queryOrder);
+
+        return $query
+            ->getQuery()
+            ->getResult();
+    }
+
+    private function getOrdering(QueryBuilder $queryBuilder, array $queryOrder): QueryBuilder
+    {
+        if (empty($queryOrder))
+            return $queryBuilder;
+
+        $prefixTable = key($queryOrder) === 'last_activity_date' ? 'a' : 'u';
+
+        return $queryBuilder->orderBy(
+            $prefixTable . '.' . key($queryOrder),
+            current($queryOrder)
+        );
+    }
+
+    private function getUserById(int $userId): ?User
+    {
+        return $this->userRepository->find($userId);
+    }
+
+    private function saveUser(User $user): bool
+    {
+        try {
+            $this->em->persist($user);
+            $this->em->flush();
+
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    private function changeUserStatus(?User $user, Status $newStatus): bool
+    {
+        if (!$user)
+            return false;
+
+        $currentStatus = $user->getStatus();
+
+        if ($currentStatus->canTransitionTo($newStatus)) {
+            $user->setStatus($newStatus);
+            return $this->saveUser($user);
+        }
+
+        return false;
+    }
+
+    public function activateUser(string $token): bool
+    {
+        $user = $this->userRepository
+            ->findOneBy(['verification_token' => $token]);
+
+        if (!$user || $user->getStatus === Status::BLOCKED)
+            return false;
+
+        return $this->changeUserStatus(
+            $user,
+            Status::ACTIVE
+        );
+    }
+
+    public function blockUser(array $userIds): bool
+    {
+        $users = $this->userRepository->findBy(['id' => $userIds]);
+
+        if (!$users)
+            return true;
+
+        foreach ($users as $user) {
+            $user->setStatus(Status::BLOCKED);
+        }
+
+        $this->em->flush();
+
+        return true;
+    }
+
+    public function unblockUser(array $userIds): bool
+    {
+        $users = $this->userRepository->findBy(['id' => $userIds]);
+
+        if (!$users)
+            return true;
+
+        foreach ($users as $user) {
+            // i have no idea what to do here. Because unvirified users should not get here. So i put active status 
+            $user->setStatus(Status::ACTIVE);
+        }
+
+        $this->em->flush();
+
+        return true;
+    }
+
+    public function deleteUser(array $userIds, SessionInterface $session): bool
+    {
+        // TODO validate data
+        $users = $this->userRepository->findBy(['id' => $userIds]);
+
+        if (!$users)
+            return true;
+
+        $currentUser = $this->security->getUser();
+        $invalidateSession = false;
+
+        foreach ($users as $user) {
+            $this->em->remove($user);
+
+            if (
+                $currentUser
+                && method_exists($currentUser, 'getId')
+                && $currentUser->getId() === $user->getId()
+            )
+                $invalidateSession = true;
+        }
+
+        $this->em->flush();
+
+        if ($invalidateSession) {
+            $this->tokenStorage->setToken(null);
+            $session->invalidate();
+        }
+
+        return true;
+    }
+}

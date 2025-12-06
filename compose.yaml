@@ -1,0 +1,71 @@
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "80:8080"
+      - "443:443"
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: 0
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: "postgresql://user:gh4thth4564h@database:5432/app?serverVersion=16&charset=utf8"
+      MAILER_DSN: ${MAILER_DSN}
+      SERVER_NAME: ":8080"
+      FRANKENPHP_DOCUMENT_ROOT: "/app/public"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config      
+      # - /
+    depends_on:
+      - database
+    command: ["/app/entrypoint.sh"]
+    # command: >
+    #   sh -c "php bin/console cache:clear --no-warmup;
+    #          php bin/console assets:install --no-interaction;
+    #          php bin/console doctrine:migrations:migrate --no-interaction;
+    #          exec frankenphp run"
+
+###> doctrine/doctrine-bundle ###
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: gh4thth4564h
+    ports:
+      - "5432:5432"
+    # healthcheck:
+    #   test: ["CMD", "pg_isready", "-d", "user", "-U", "gh4thth4564h"]
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile 
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV}
+      DATABASE_URL: "pgsql://user:gh4thth4564h@database:5432/app?serverVersion=16&charset=utf8"
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN}    
+    command: php bin/console messenger:consume async -vv --limit=500
+    depends_on:
+      - database
+      - app
+
+volumes:
+###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
+  caddy_data:
+  caddy_config:

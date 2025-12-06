@@ -1,0 +1,11 @@
+btn delete unverified
+email sending
+queue
+data check
+
+
+Send to p.lebedev@itransition.com:
+Full name.
+Link to source code in the public repository.
+Link to the deployed project (you can use any hosting you find suitable —amazon, azure, render, vercel, netlify, anything).
+Recorded video without narration: registration, confirmation, login, non-current user selection, user blocking (the user status should be updated), user unblocking, all user selection (including current), all user blocking (with automatic redirection to the login page), demonstration of the index created in the database.

@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign Up
+{% endblock %}
+
+{% block body %}
+	<div class="row justify-content-center">
+		<h1 class="mb-4 text-center">Registration page</h1>
+
+		<div class="col-md-6 col-12">
+			<div class="card shadow">
+				<div class="card-header bg-dark text-white">
+					<h3 class="mb-0 text-center">Register New User</h3>
+				</div>
+				<div class="card-body">
+					<form method="post" action="{{ path('app_register') }}">
+
+						{% include 'includes/alert.html.twig' %}
+
+						<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+						<div class="mb-3">
+							<label for="username" class="form-label">Name</label>
+							<input type="text" class="form-control" id="username" name="name" required>
+						</div>
+
+						<div class="mb-3">
+							<label for="email" class="form-label">Email</label>
+							<input type="email" class="form-control" id="email" name="email" required>
+						</div>
+
+						<div class="mb-3">
+							<label for="password" class="form-label">Password</label>
+							<input type="password" class="form-control" id="password" name="password" required>
+						</div>
+
+						<button type="submit" class="btn btn-dark w-100">Register</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+{% endblock %}

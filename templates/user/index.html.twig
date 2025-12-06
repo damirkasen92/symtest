@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+	<div class="index-wrapper">
+		<h1 class="mb-4">List of users</h1>
+
+		{% include 'includes/alert.html.twig' %}
+
+		<div class="index-sheet">
+
+			<div class="d-flex justify-content-between align-items-center p-2 bg-dark">
+				<div class="m-1">
+					<!-- Block -->
+					<button class="btn btn-outline-warning me-2" data-button-action="block">
+						<i class="bi bi-slash-circle"></i>
+						Block
+					</button>
+
+					<!-- Unblock -->
+					<button class="btn btn-outline-success me-2" data-button-action="unblock">
+						<i class="bi bi-check-circle"></i>
+						Unblock
+					</button>
+
+					<!-- Delete -->
+					<button class="btn btn-outline-danger" data-button-action="delete">
+						<i class="bi bi-trash"></i>
+						Delete
+					</button>
+				</div>
+			</div>
+
+			<table class="table table-striped table-hover table-bordered">
+				<thead class="table-dark">
+					<tr>
+						<th>
+							<label>
+								<input type="checkbox" id="selectAll">
+							</label>
+						</th>
+						<th>
+                            <!-- Minus DRY, i am rushing.  -->
+                            <a class="text-white" href="{{ path('app_index', {name: app.request.query.get('name') == 'asc' ? 'desc' : 'asc'}) }}">
+                                Name
+                            </a>
+                        </th>
+						<th>
+                            <a class="text-white" href="{{ path('app_index', {email: app.request.query.get('email') == 'asc' ? 'desc' : 'asc'}) }}">
+                                Email
+                            </a>
+                        </th>
+						<th>
+                            <a class="text-white" href="{{ path('app_index', {status: app.request.query.get('status') == 'asc' ? 'desc' : 'asc'}) }}">
+                                Status
+                            </a>
+                        </th>
+						<th>
+                            <a class="text-white" href="{{ path('app_index', {last_activity_date: app.request.query.get('last_activity_date') == 'asc' ? 'desc' : 'asc'}) }}">
+                                Last Login
+                            </a>
+                        </th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for user in users %}
+						<tr>
+							<td>
+								<input type="checkbox" name="user_id" value="{{ user.id }}">
+							</td>
+							<td>{{ user.name }}</td>
+							<td>{{ user.email }}</td>
+							<td>{{ user.status.value }}</td>
+							{% set lastActivity = user.activities|first %}
+							<td>
+								{% if lastActivity is not empty %}
+									{{ lastActivity.lastActivityDate|date('d.m.Y H:i:s') }}
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+
+		</div>
+
+	</div>
+{% endblock %}
