@@ -68,6 +68,7 @@ class UserAuthenticationService
     {
         // or use url generator
         $email = (new Email())
+            ->from('damir.kasen92@gmail.com')
             ->to($emailAddress)
             ->subject('Please confirm your email address')
             ->html("<p>Thanks for registering. 
