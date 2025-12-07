@@ -7,9 +7,9 @@ use App\Enum\User\Status;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Src\Exception\UserManagementException;
+use App\Exception\UserManagementException;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 // KISS, YAGNI
@@ -23,7 +23,7 @@ class UserManagementService
         private EntityManagerInterface $em,
         private Security $security,
         private TokenStorageInterface $tokenStorage,
-        private SessionInterface $session
+        private RequestStack $requestStack
     ) {
         // maybe it is not efficient, because it will be loaded on every call
         // It needs in each "post" method here in this class
@@ -174,7 +174,7 @@ class UserManagementService
 
         if ($invalidateSession) {
             $this->tokenStorage->setToken(null);
-            $this->session->invalidate();
+            $this->requestStack->getSession()->invalidate();
         }
 
         return $this->safeFlush();

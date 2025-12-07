@@ -1,6 +1,6 @@
 <?php
 
-namespace Src\Exception;
+namespace App\Exception;
 
 class UserManagementException extends \Exception
 {

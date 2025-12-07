@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Service\User\UserAuthenticationService;
-use Src\Dto\UserRegistrationDto;
-use Src\Exception\RegistrationException;
+use App\Dto\UserRegistrationDto;
+use App\Exception\RegistrationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

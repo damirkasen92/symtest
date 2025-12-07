@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Service\User\UserManagementService;
-use Src\Dto\UserManagementDto;
-use Src\Exception\UserManagementException;
+use App\Dto\UserManagementDto;
+use App\Exception\UserManagementException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

@@ -5,11 +5,10 @@ namespace App\Service\User;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Src\Dto\UserRegistrationDto;
-use Src\Exception\RegistrationException;
+use App\Dto\UserRegistrationDto;
+use App\Exception\RegistrationException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -24,7 +23,6 @@ class UserAuthenticationService
         private ValidatorInterface $validator,
         private RequestStack $requestStack,
         private Security $security,
-        private Session $session
     ) {
     }
 
