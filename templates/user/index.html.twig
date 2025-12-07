@@ -64,25 +64,32 @@
 								</label>
 							</th>
 							<th>
-								<!-- Minus DRY, i am rushing.  -->
-								<a class="text-white" href="{{ path('app_index', {name: app.request.query.get('name') == 'asc' ? 'desc' : 'asc'}) }}">
-									Name
-								</a>
+								{% include '_sort_link.html.twig' with {
+									label: 'Name',
+									field: 'name',
+									current: app.request.query.get('name')
+								} %}
 							</th>
 							<th>
-								<a class="text-white" href="{{ path('app_index', {email: app.request.query.get('email') == 'asc' ? 'desc' : 'asc'}) }}">
-									Email
-								</a>
+								{% include '_sort_link.html.twig' with {
+									label: 'Email',
+									field: 'email',
+									current: app.request.query.get('email')
+								} %}
 							</th>
 							<th>
-								<a class="text-white" href="{{ path('app_index', {status: app.request.query.get('status') == 'asc' ? 'desc' : 'asc'}) }}">
-									Status
-								</a>
+								{% include '_sort_link.html.twig' with {
+									label: 'Status',
+									field: 'status',
+									current: app.request.query.get('status')
+								} %}
 							</th>
 							<th>
-								<a class="text-white" href="{{ path('app_index', {last_activity_date: app.request.query.get('last_activity_date') == 'asc' ? 'desc' : 'asc'}) }}">
-									Last Login
-								</a>
+								{% include '_sort_link.html.twig' with {
+									label: 'Last Login',
+									field: 'last_activity_date',
+									current: app.request.query.get('last_activity_date')
+								} %}
 							</th>
 						</tr>
 					</thead>

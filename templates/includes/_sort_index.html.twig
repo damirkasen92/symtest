@@ -1,0 +1,8 @@
+<a href="{{ path('app_index', { (field): current == 'asc' ? 'desc' : 'asc' }) }}" class="text-white">
+    {{ label }}
+    {% if current == 'asc' %}
+        <i class="bi bi-arrow-up"></i>
+    {% elseif current == 'desc' %}
+        <i class="bi bi-arrow-down"></i>
+    {% endif %}
+</a>

@@ -2,11 +2,10 @@ FROM dunglas/frankenphp:php8.4-alpine
 
 # Переменные окружения для продакшена
 ENV APP_ENV=prod
-ENV APP_DEBUG=1
+ENV APP_DEBUG=0
 ENV SERVER_NAME=":8080"
 
-ENV DATABASE_URL="postgresql://pgsql:reg45y54g545gdpimgrhA%@172.27.240.3:5432/app?serverVersion=16&charset=utf8"
-
+ENV DATABASE_URL=$DATABASE_URL
 ENV MAILER_DSN=$MAILER_DSN
 
 ENV FRANKENPHP_DOCUMENT_ROOT="/app/public"
