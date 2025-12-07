@@ -89,7 +89,7 @@ class UserManagementService
             ->findOneBy(['verification_token' => $token]);
 
         if (
-            !$user || $user->getStatus === Status::BLOCKED || !$this->canChangeUserStatus(
+            !$user || !$this->canChangeUserStatus(
                 $user,
                 Status::ACTIVE
             )
@@ -144,7 +144,6 @@ class UserManagementService
         $users = $this->findUsersBy($userIds);
 
         foreach ($users as $user) {
-            if (!$this->canChangeUserStatus($user, $newStatus)) continue;
             $user->setStatus($newStatus);
         }
 

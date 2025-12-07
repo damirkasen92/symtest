@@ -17,7 +17,7 @@ readonly class UserRegistrationDto
 
     #[Assert\Length(min: 1)]
     #[Assert\NotBlank(message: 'Password cannot be blank')]
-    public string $password;
+    public string $plainPassword;
 
     public static function fromRequest(Request $request): UserRegistrationDto
     {

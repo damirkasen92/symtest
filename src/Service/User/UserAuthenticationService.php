@@ -41,7 +41,7 @@ class UserAuthenticationService
 
         $user->setName($dto->name);
         $user->setEmail($dto->email);
-        $user->setPlainPassword($dto->password);
+        $user->setPlainPassword($dto->plainPassword);
 
         $hashedPassword = $this->hasher->hashPassword($user, $user->getPlainPassword());
         $user->setPassword($hashedPassword);
