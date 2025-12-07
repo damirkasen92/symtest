@@ -33,7 +33,7 @@
 					</button>
 
 					<!-- Delete -->
-					<button class="btn btn-outline-danger" 
+					<button class="btn btn-outline-danger me-2" 
 						data-button-action="delete"
 						data-bs-toggle="tooltip" 
 						data-bs-placement="top" 
@@ -53,58 +53,59 @@
 					</button>
 				</div>
 			</div>
-
-			<table class="table table-striped table-hover table-bordered">
-				<thead class="table-dark">
-					<tr>
-						<th>
-							<label>
-								<input type="checkbox" id="selectAll">
-							</label>
-						</th>
-						<th>
-                            <!-- Minus DRY, i am rushing.  -->
-                            <a class="text-white" href="{{ path('app_index', {name: app.request.query.get('name') == 'asc' ? 'desc' : 'asc'}) }}">
-                                Name
-                            </a>
-                        </th>
-						<th>
-                            <a class="text-white" href="{{ path('app_index', {email: app.request.query.get('email') == 'asc' ? 'desc' : 'asc'}) }}">
-                                Email
-                            </a>
-                        </th>
-						<th>
-                            <a class="text-white" href="{{ path('app_index', {status: app.request.query.get('status') == 'asc' ? 'desc' : 'asc'}) }}">
-                                Status
-                            </a>
-                        </th>
-						<th>
-                            <a class="text-white" href="{{ path('app_index', {last_activity_date: app.request.query.get('last_activity_date') == 'asc' ? 'desc' : 'asc'}) }}">
-                                Last Login
-                            </a>
-                        </th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for user in users %}
+			
+			<div class="table-responsive">
+				<table class="table table-striped table-hover table-bordered">
+					<thead class="table-dark">
 						<tr>
-							<td>
-								<input type="checkbox" name="user_id" value="{{ user.id }}" data-is-unverified="{{ user.status.value == 'unverified' ? '1' : '0' }}">
-							</td>
-							<td>{{ user.name }}</td>
-							<td>{{ user.email }}</td>
-							<td>{{ user.status.value }}</td>
-							{% set lastActivity = user.activities|first %}
-							<td>
-								{% if lastActivity is not empty %}
-									{{ lastActivity.lastActivityDate|date('d.m.Y H:i:s') }}
-								{% endif %}
-							</td>
+							<th>
+								<label>
+									<input type="checkbox" id="selectAll">
+								</label>
+							</th>
+							<th>
+								<!-- Minus DRY, i am rushing.  -->
+								<a class="text-white" href="{{ path('app_index', {name: app.request.query.get('name') == 'asc' ? 'desc' : 'asc'}) }}">
+									Name
+								</a>
+							</th>
+							<th>
+								<a class="text-white" href="{{ path('app_index', {email: app.request.query.get('email') == 'asc' ? 'desc' : 'asc'}) }}">
+									Email
+								</a>
+							</th>
+							<th>
+								<a class="text-white" href="{{ path('app_index', {status: app.request.query.get('status') == 'asc' ? 'desc' : 'asc'}) }}">
+									Status
+								</a>
+							</th>
+							<th>
+								<a class="text-white" href="{{ path('app_index', {last_activity_date: app.request.query.get('last_activity_date') == 'asc' ? 'desc' : 'asc'}) }}">
+									Last Login
+								</a>
+							</th>
 						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-
+					</thead>
+					<tbody>
+						{% for user in users %}
+							<tr>
+								<td>
+									<input type="checkbox" name="user_id" value="{{ user.id }}" data-is-unverified="{{ user.status.value == 'unverified' ? '1' : '0' }}">
+								</td>
+								<td>{{ user.name }}</td>
+								<td>{{ user.email }}</td>
+								<td>{{ user.status.value }}</td>
+								{% set lastActivity = user.activities|first %}
+								<td>
+									{% if lastActivity is not empty %}
+										{{ lastActivity.lastActivityDate|date('d.m.Y H:i:s') }}
+									{% endif %}
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
 		</div>
 
 	</div>

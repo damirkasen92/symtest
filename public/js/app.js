@@ -6,11 +6,12 @@ $(function () {
     setButtonHandle('delete');
     setButtonHandle('block');
     setButtonHandle('unblock');
+    $('[data-bs-toggle="tooltip"]').tooltip();
 
     function setButtonHandle(action) {
-        let $delBtn = $('[data-button-action="' + action + '"]');
+        let $btn = $('[data-button-action="' + action + '"]');
 
-        $delBtn.on('click', function () {
+        $btn.on('click', function () {
             const userIds = $('[name="user_id"]:checked')
                 .map((_, el) => el.value).get();
 
@@ -29,8 +30,8 @@ $(function () {
         let $delUnverifiedBtn = $('[data-button-action="delete-unverified"]');
 
         $delUnverifiedBtn.on('click', function () {
-            $('[data-is-unverified="0"]').prop('check', false);
-            $('[data-is-unverified="1"]').prop('check', true);
+            $('[data-is-unverified="0"]').prop('checked', false);
+            $('[data-is-unverified="1"]').prop('checked', true);
             $('[data-button-action="delete"]').trigger('click');
         });
 
