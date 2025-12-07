@@ -4,6 +4,7 @@ namespace App\Service\User;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -15,7 +16,8 @@ class UserAuthenticationService
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $hasher,
         private MailerInterface $mailer,
-        private ValidatorInterface $validator
+        private ValidatorInterface $validator,
+        private RequestStack $requestStack
     ) {
     }
 
@@ -64,12 +66,15 @@ class UserAuthenticationService
     // queued email sending
     private function sendVerificationEmail(MailerInterface $mailer, string $emailAddress, string $verificationToken): void
     {
+        // or use url generator
         $email = (new Email())
-            ->from('noreply@example.com')
             ->to($emailAddress)
             ->subject('Please confirm your email address')
             ->html("<p>Thanks for registering. 
-                Please confirm your email by clicking <a href='https://{$_SERVER['HTTP_HOST']}/activate/{$verificationToken}'>here</a>.</p>");
+                Please confirm your email by clicking 
+                <a href='https://{$this->requestStack->getCurrentRequest()->getHost()}/user/activate/{$verificationToken}'>here</a>.
+                </p>"
+            );
 
         $mailer->send($email);
     }

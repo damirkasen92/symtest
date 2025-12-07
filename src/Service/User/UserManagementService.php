@@ -10,6 +10,7 @@ use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 // KISS, YAGNI
 // But i think i overcomplicated it ( lack of experience... )
@@ -108,8 +109,12 @@ class UserManagementService
         );
     }
 
-    public function blockUser(array $userIds): bool
-    {
+    public function blockUser(
+        #[Assert\All([
+            new Assert\Type('numeric')
+        ])]
+        array $userIds
+    ): bool {
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         if (!$users)
@@ -124,8 +129,12 @@ class UserManagementService
         return true;
     }
 
-    public function unblockUser(array $userIds): bool
-    {
+    public function unblockUser(
+        #[Assert\All([
+            new Assert\Type('numeric')
+        ])]
+        array $userIds
+    ): bool {
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         if (!$users)
@@ -141,9 +150,13 @@ class UserManagementService
         return true;
     }
 
-    public function deleteUser(array $userIds, SessionInterface $session): bool
-    {
-        // TODO validate data
+    public function deleteUser(
+        #[Assert\All([
+            new Assert\Type('numeric')
+        ])]
+        array $userIds,
+        SessionInterface $session
+    ): bool {
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         if (!$users)

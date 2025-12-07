@@ -12,21 +12,44 @@
 			<div class="d-flex justify-content-between align-items-center p-2 bg-dark">
 				<div class="m-1">
 					<!-- Block -->
-					<button class="btn btn-outline-warning me-2" data-button-action="block">
+					<button class="btn btn-outline-warning me-2" 
+						data-button-action="block"
+						data-bs-toggle="tooltip" 
+						data-bs-placement="top" 
+        				title="Блокировать пользователя"
+					>
 						<i class="bi bi-slash-circle"></i>
 						Block
 					</button>
 
 					<!-- Unblock -->
-					<button class="btn btn-outline-success me-2" data-button-action="unblock">
+					<button class="btn btn-outline-success me-2" 
+						data-button-action="unblock"
+						data-bs-toggle="tooltip" 
+						data-bs-placement="top" 
+        				title="Разблокировать пользователя"
+					>
 						<i class="bi bi-check-circle"></i>
-						Unblock
 					</button>
 
 					<!-- Delete -->
-					<button class="btn btn-outline-danger" data-button-action="delete">
+					<button class="btn btn-outline-danger" 
+						data-button-action="delete"
+						data-bs-toggle="tooltip" 
+						data-bs-placement="top" 
+        				title="Удалить пользователя"
+					>
 						<i class="bi bi-trash"></i>
-						Delete
+					</button>
+
+					<!-- Delete unverified -->
+					<button class="btn btn-outline-danger" 
+						data-button-action="delete-unverified"
+						data-bs-toggle="tooltip" 
+						data-bs-placement="top" 
+        				title="Удалить unverified пользователя"
+					>
+						<i class="bi bi-trash-fill"></i>
 					</button>
 				</div>
 			</div>
@@ -66,7 +89,7 @@
 					{% for user in users %}
 						<tr>
 							<td>
-								<input type="checkbox" name="user_id" value="{{ user.id }}">
+								<input type="checkbox" name="user_id" value="{{ user.id }}" data-is-unverified="{{ user.status.value == 'unverified' ? '1' : '0' }}">
 							</td>
 							<td>{{ user.name }}</td>
 							<td>{{ user.email }}</td>

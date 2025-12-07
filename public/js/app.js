@@ -26,6 +26,18 @@ $(function () {
     }
 
     (function () {
+        let $delUnverifiedBtn = $('[data-button-action="delete-unverified"]');
+
+        $delUnverifiedBtn.on('click', function () {
+            $('[data-is-unverified="0"]').prop('check', false);
+            $('[data-is-unverified="1"]').prop('check', true);
+            $('[data-button-action="delete"]').trigger('click');
+        });
+
+        // data-is-unverified
+    })();
+
+    (function () {
         let $toggleAllBtn = $('#selectAll');
 
         $toggleAllBtn.on('click', function () {

@@ -43,14 +43,6 @@ final class UserController extends AbstractController
         );
     }
 
-    #[Route('/user/activate/{token}', name: 'app_user_activate', methods: ['GET'])]
-    public function activateUser(string $token): Response
-    {
-        return $this->returnResponse(
-            $this->managementService->activateUser($token)
-        );
-    }
-
     #[Route('/user/delete', name: 'app_user_delete', methods: ['POST'])]
     public function deleteUser(Request $request): Response
     {
@@ -59,6 +51,14 @@ final class UserController extends AbstractController
                 (array) $request->request->all('userIds'),
                 $request->getSession()
             )
+        );
+    }
+
+    #[Route('/user/activate/{token}', name: 'app_user_activate', methods: ['GET'])]
+    public function activateUser(string $token): Response
+    {
+        return $this->returnResponse(
+            $this->managementService->activateUser($token)
         );
     }
 
