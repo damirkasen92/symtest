@@ -5,6 +5,8 @@ namespace App\Service\User;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Src\Dto\UserRegistrationDto;
+use Src\Exception\RegistrationException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -35,45 +37,20 @@ class UserAuthenticationService
      * @throws Exception
      * @return void
      */
-    public function register(string $name, string $email, string $plainPassword): void
+    public function register(UserRegistrationDto $dto): void
     {
         $user = new User();
 
-        $user->setName($name);
-        $user->setEmail($email);
-        $user->setPlainPassword($plainPassword);
+        $user->setName($dto->name);
+        $user->setEmail($dto->email);
+        $user->setPlainPassword($dto->password);
 
-        $hashedPassword = $this->hasher->hashPassword($user, $plainPassword);
+        $hashedPassword = $this->hasher->hashPassword($user, $user->getPlainPassword());
         $user->setPassword($hashedPassword);
 
         $verificationToken = $this->generateVerificationToken();
         $user->setVerificationToken($verificationToken);
-
-        $this->handleRegisterErrors($user);
-        $this->persistRegisterData($user, $email, $verificationToken);
-    }
-
-    /**
-     * Summary of handleRegisterErrors
-     * @param User $user
-     * @throws Exception
-     * @return void
-     */
-    private function handleRegisterErrors(User $user): void
-    {
-        $errors = $this->validator->validate($user);
-
-        if (\count($errors) > 0) {
-            foreach ($errors as $error) {
-                $this->session->getFlashBag()
-                    ->add(
-                        'error',
-                        \gettype($error) === 'object' ? $error->getMessage() : $error
-                    );
-            }
-
-            throw new Exception('Registration error');
-        }
+        $this->persistRegisterData($user);
     }
 
     /**
@@ -84,27 +61,16 @@ class UserAuthenticationService
      * @throws Exception
      * @return void
      */
-    private function persistRegisterData(User $user, string $email, string $verificationToken): void
+    private function persistRegisterData(User $user): void
     {
         try {
             $this->em->persist($user);
             $this->em->flush();
 
-            $this->sendVerificationEmail(
-                $this->mailer,
-                $email,
-                $verificationToken
-            );
-
+            $this->sendVerificationEmail($user);
             $this->security->login($user);
-            $this->session->getFlashBag()->add('success', 'Registration successful. Welcome!');
         } catch (Exception $e) {
-            $this->session->getFlashBag()->add(
-                'error',
-                'An error occurred during registration. Please try again.'
-            );
-
-            throw new Exception('An error occurred during registration. Please try again.');
+            throw new RegistrationException('An error occurred during registration. Please try again.');
         }
     }
 
@@ -115,21 +81,21 @@ class UserAuthenticationService
     }
 
     // queued email sending
-    private function sendVerificationEmail(MailerInterface $mailer, string $emailAddress, string $verificationToken): void
+    private function sendVerificationEmail(User $user): void
     {
         // or use url generator
-        $email = (new Email())
+        $email = new Email()
             ->from('damir.kasen92@gmail.com')
-            ->to($emailAddress)
+            ->to($user->getEmail())
             ->subject('Please confirm your email address')
             ->html(
                 "<p>Thanks for registering. 
                 Please confirm your email by clicking 
-                <a href='https://{$this->requestStack->getCurrentRequest()->getHost()}/user/activate/{$verificationToken}'>here</a>.
+                <a href='https://{$this->requestStack->getCurrentRequest()->getHost()}/user/activate/{$user->getVerificationToken()}'>here</a>.
                 </p>"
             );
 
-        $mailer->send($email);
+        $this->mailer->send($email);
     }
 
 }

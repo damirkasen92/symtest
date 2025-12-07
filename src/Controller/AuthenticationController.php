@@ -3,18 +3,20 @@
 namespace App\Controller;
 
 use App\Service\User\UserAuthenticationService;
-use Exception;
+use Src\Dto\UserRegistrationDto;
+use Src\Exception\RegistrationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class AuthenticationController extends AbstractController
 {
     public function __construct(
-        private UserAuthenticationService $userAuthenticationService
+        private UserAuthenticationService $userAuthenticationService,
+        private ValidatorInterface $validator
     ) {
     }
 
@@ -40,28 +42,48 @@ final class AuthenticationController extends AbstractController
         return $this->render('user/register.html.twig');
     }
 
-    // I think about DTO pattern, but for this simple case... I don't know
     #[Route('/register', name: 'app_register', methods: ['POST'])]
-    public function register(Request $request, Security $security): Response
+    public function register(Request $request): Response
     {
-        $name = $request->request->getString('name');
-        $email = $request->request->getString('email');
-        $plainPassword = $request->request->getString('password');
+        $dto = UserRegistrationDto::fromRequest($request);
+
+        if ($this->hasErrors($dto))
+            return $this->redirectToRoute('app_register');
 
         try {
-            $this->userAuthenticationService
-                ->register($name, $email, $plainPassword);
+            $this->userAuthenticationService->register($dto);
+            $this->addFlash('success', 'Registration successful. Welcome!');
+        } catch (RegistrationException $e) {
+            $this->addFlash(
+                'error',
+                $e->getMessage()
+            );
 
-        } catch (Exception $e) {
             return $this->redirectToRoute('app_register');
         }
 
         return $this->redirectToRoute('app_index');
     }
 
+    private function hasErrors($dto): bool
+    {
+        $errors = $this->validator->validate($dto);
+
+        if (\count($errors) === 0)
+            return false;
+
+        foreach ($errors as $error) {
+            $this->addFlash(
+                'error',
+                \gettype($error) === 'object' ? $error->getMessage() : $error
+            );
+        }
+
+        return true;
+    }
+
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]
     public function logout(): void
     {
-        // Symfony will handle the logout process i guess
     }
 }

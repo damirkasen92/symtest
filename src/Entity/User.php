@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Validator\Constraints as Assert;
 
 // So many attributes. I haven't seen this many since PHP 8 was released))
 
@@ -24,13 +23,9 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Assert\Email]
-    #[Assert\NotBlank(message: 'Email cannot be blank')]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Length(min: 1)]
-    #[Assert\NotBlank(message: 'Password cannot be blank')]
     private ?string $password = null;
 
     private ?string $plainPassword = null;
@@ -45,8 +40,6 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?Collection $activities = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Length(min: 3, minMessage: 'Name must be at least {{ limit }} characters long')]
-    #[Assert\NotBlank(message: 'Name cannot be blank')]
     private ?string $name = null;
 
     public function getActivities(): ?Collection

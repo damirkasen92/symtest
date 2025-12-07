@@ -7,10 +7,10 @@ use App\Enum\User\Status;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use Src\Exception\UserManagementException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Validator\Constraints as Assert;
 
 // KISS, YAGNI
 // But i think i overcomplicated it ( lack of experience... )
@@ -22,7 +22,8 @@ class UserManagementService
     public function __construct(
         private EntityManagerInterface $em,
         private Security $security,
-        private TokenStorageInterface $tokenStorage
+        private TokenStorageInterface $tokenStorage,
+        private SessionInterface $session
     ) {
         // maybe it is not efficient, because it will be loaded on every call
         // It needs in each "post" method here in this class
@@ -64,31 +65,22 @@ class UserManagementService
         );
     }
 
-    private function saveUser(User $user): bool
+    private function safeFlush(): bool
     {
+        $this->em->beginTransaction();
         try {
-            $this->em->persist($user);
             $this->em->flush();
-
+            $this->em->commit();
             return true;
         } catch (\Exception $e) {
+            $this->em->rollback();
             return false;
         }
     }
 
-    private function changeUserStatus(?User $user, Status $newStatus): bool
+    private function canChangeUserStatus(User $user, Status $newStatus): bool
     {
-        if (!$user)
-            return false;
-
-        $currentStatus = $user->getStatus();
-
-        if ($currentStatus->canTransitionTo($newStatus)) {
-            $user->setStatus($newStatus);
-            return $this->saveUser($user);
-        }
-
-        return false;
+        return $user->getStatus()->canTransitionTo($newStatus);
     }
 
     public function activateUser(string $token): bool
@@ -96,68 +88,76 @@ class UserManagementService
         $user = $this->userRepository
             ->findOneBy(['verification_token' => $token]);
 
-        if (!$user || $user->getStatus === Status::BLOCKED)
+        if (
+            !$user || $user->getStatus === Status::BLOCKED || !$this->canChangeUserStatus(
+                $user,
+                Status::ACTIVE
+            )
+        )
             return false;
 
-        return $this->changeUserStatus(
-            $user,
-            Status::ACTIVE
-        );
+        $user->setVerificationToken(null);
+        $user->setStatus(Status::ACTIVE);
+
+        return $this->safeFlush();
     }
 
+    /**
+     * @throws UserManagementException
+     */
+    private function findUsersBy(
+        array $userIds
+    ): array 
+    {
+        $users = $this->userRepository->findBy(['id' => $userIds]);
+
+        if (!$users)
+            throw new UserManagementException('Users were not found');
+
+        return $users;
+    }
+
+    /**
+     * @throws UserManagementException
+     */
     public function blockUser(
-        #[Assert\All([
-            new Assert\Type('numeric')
-        ])]
         array $userIds
     ): bool {
-        $users = $this->userRepository->findBy(['id' => $userIds]);
-
-        if (!$users)
-            return false;
-
-        foreach ($users as $user) {
-            $user->setStatus(Status::BLOCKED);
-        }
-
-        $this->em->flush();
-
-        return true;
+        return $this->setStatusUsers($userIds, Status::BLOCKED);
     }
 
+    // i have no idea what to do here. Because unvirified users should not get here. So i put an active status 
+    /**
+     * @throws UserManagementException
+     */
     public function unblockUser(
-        #[Assert\All([
-            new Assert\Type('numeric')
-        ])]
         array $userIds
     ): bool {
-        $users = $this->userRepository->findBy(['id' => $userIds]);
-
-        if (!$users)
-            return false;
-
-        foreach ($users as $user) {
-            // i have no idea what to do here. Because unvirified users should not get here. So i put an active status 
-            $user->setStatus(Status::ACTIVE);
-        }
-
-        $this->em->flush();
-
-        return true;
+        return $this->setStatusUsers($userIds, Status::ACTIVE);
     }
 
+    /**
+     * @throws UserManagementException
+     */
+    private function setStatusUsers(array $userIds, Status $newStatus)
+    {
+        $users = $this->findUsersBy($userIds);
+
+        foreach ($users as $user) {
+            if (!$this->canChangeUserStatus($user, $newStatus)) continue;
+            $user->setStatus($newStatus);
+        }
+
+        return $this->safeFlush();
+    }
+
+    /**
+     * @throws UserManagementException
+     */
     public function deleteUser(
-        #[Assert\All([
-            new Assert\Type('numeric')
-        ])]
-        array $userIds,
-        SessionInterface $session
+        array $userIds
     ): bool {
-        $users = $this->userRepository->findBy(['id' => $userIds]);
-
-        if (!$users)
-            return false;
-
+        $users = $this->findUsersBy($userIds);
         $currentUser = $this->security->getUser();
         $invalidateSession = false;
 
@@ -172,13 +172,11 @@ class UserManagementService
                 $invalidateSession = true;
         }
 
-        $this->em->flush();
-
         if ($invalidateSession) {
             $this->tokenStorage->setToken(null);
-            $session->invalidate();
+            $this->session->invalidate();
         }
 
-        return true;
+        return $this->safeFlush();
     }
 }
