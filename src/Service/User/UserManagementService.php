@@ -25,6 +25,7 @@ class UserManagementService
         private TokenStorageInterface $tokenStorage
     ) {
         // maybe it is not efficient, because it will be loaded on every call
+        // It needs in each "post" method here in this class
         $this->userRepository = $this->em->getRepository(User::class);
     }
 
@@ -61,11 +62,6 @@ class UserManagementService
             $prefixTable . '.' . key($queryOrder),
             current($queryOrder)
         );
-    }
-
-    private function getUserById(int $userId): ?User
-    {
-        return $this->userRepository->find($userId);
     }
 
     private function saveUser(User $user): bool
@@ -118,7 +114,7 @@ class UserManagementService
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         if (!$users)
-            return true;
+            return false;
 
         foreach ($users as $user) {
             $user->setStatus(Status::BLOCKED);
@@ -138,10 +134,10 @@ class UserManagementService
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         if (!$users)
-            return true;
+            return false;
 
         foreach ($users as $user) {
-            // i have no idea what to do here. Because unvirified users should not get here. So i put active status 
+            // i have no idea what to do here. Because unvirified users should not get here. So i put an active status 
             $user->setStatus(Status::ACTIVE);
         }
 
@@ -160,7 +156,7 @@ class UserManagementService
         $users = $this->userRepository->findBy(['id' => $userIds]);
 
         if (!$users)
-            return true;
+            return false;
 
         $currentUser = $this->security->getUser();
         $invalidateSession = false;

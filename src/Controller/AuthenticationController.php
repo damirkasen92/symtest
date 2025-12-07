@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Service\User\UserAuthenticationService;
-use App\Service\User\UserManagementService;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,23 +48,14 @@ final class AuthenticationController extends AbstractController
         $email = $request->request->getString('email');
         $plainPassword = $request->request->getString('password');
 
-        $result = $this->userAuthenticationService
-            ->register($name, $email, $plainPassword);
+        try {
+            $this->userAuthenticationService
+                ->register($name, $email, $plainPassword);
 
-        // eehhhh..
-        if (!$result['success']) {
-            foreach ($result['errors'] as $error) {
-                $this->addFlash('error', 
-                    gettype($error) === 'object' ? $error->getMessage() : $error
-                );
-            }
-
+        } catch (Exception $e) {
             return $this->redirectToRoute('app_register');
         }
 
-        $security->login($result['user']);
-        $this->addFlash('success', 'Registration successful. Welcome!');
-        
         return $this->redirectToRoute('app_index');
     }
 

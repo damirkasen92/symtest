@@ -57,9 +57,12 @@ final class UserController extends AbstractController
     #[Route('/user/activate/{token}', name: 'app_user_activate', methods: ['GET'])]
     public function activateUser(string $token): Response
     {
-        return $this->returnResponse(
-            $this->managementService->activateUser($token)
-        );
+        if ($this->managementService->activateUser($token)) 
+            return $this->render('user/success_user_activation.html.twig');
+
+        // i do not know what to do, so i just put it here
+        $this->addFlash('error', 'Something went wrong!');
+        return $this->redirectToRoute('app_index');
     }
 
     private function returnResponse(bool $result): Response
