@@ -64,28 +64,28 @@
 								</label>
 							</th>
 							<th>
-								{% include '_sort_link.html.twig' with {
+								{% include 'includes/_sort_index.html.twig' with {
 									label: 'Name',
 									field: 'name',
 									current: app.request.query.get('name')
 								} %}
 							</th>
 							<th>
-								{% include '_sort_link.html.twig' with {
+								{% include 'includes/_sort_index.html.twig' with {
 									label: 'Email',
 									field: 'email',
 									current: app.request.query.get('email')
 								} %}
 							</th>
 							<th>
-								{% include '_sort_link.html.twig' with {
+								{% include 'includes/_sort_index.html.twig' with {
 									label: 'Status',
 									field: 'status',
 									current: app.request.query.get('status')
 								} %}
 							</th>
 							<th>
-								{% include '_sort_link.html.twig' with {
+								{% include 'includes/_sort_index.html.twig' with {
 									label: 'Last Login',
 									field: 'last_activity_date',
 									current: app.request.query.get('last_activity_date')
