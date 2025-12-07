@@ -99,7 +99,7 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
         return $this->verification_token;
     }
 
-    public function setVerificationToken(string $verification_token): static
+    public function setVerificationToken(?string $verification_token): static
     {
         $this->verification_token = $verification_token;
 
