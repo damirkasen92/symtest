@@ -7,7 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -21,8 +21,8 @@ class UserAuthenticationService
         private MailerInterface $mailer,
         private ValidatorInterface $validator,
         private RequestStack $requestStack,
-        private FlashBagInterface $flashBag,
-        private Security $security
+        private Security $security,
+        private Session $session
     ) {
     }
 
@@ -65,10 +65,11 @@ class UserAuthenticationService
 
         if (\count($errors) > 0) {
             foreach ($errors as $error) {
-                $this->flashBag->add(
-                    'error',
-                    \gettype($error) === 'object' ? $error->getMessage() : $error
-                );
+                $this->session->getFlashBag()
+                    ->add(
+                        'error',
+                        \gettype($error) === 'object' ? $error->getMessage() : $error
+                    );
             }
 
             throw new Exception('Registration error');
@@ -96,9 +97,9 @@ class UserAuthenticationService
             );
 
             $this->security->login($user);
-            $this->flashBag->add('success', 'Registration successful. Welcome!');
+            $this->session->getFlashBag()->add('success', 'Registration successful. Welcome!');
         } catch (Exception $e) {
-            $this->flashBag->add(
+            $this->session->getFlashBag()->add(
                 'error',
                 'An error occurred during registration. Please try again.'
             );
