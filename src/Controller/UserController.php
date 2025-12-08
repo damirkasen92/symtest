@@ -37,7 +37,8 @@ final class UserController extends AbstractController
         return true;
     }
 
-    private function handleRequest(Request $request, string $action)
+    #[Route('/user/block', name: 'app_user_block', methods: ['POST'])]
+    public function blockUser(Request $request): Response
     {
         $dto = UserManagementDto::fromRequest($request);
 
@@ -45,47 +46,58 @@ final class UserController extends AbstractController
             return $this->json(['status' => 'error'], Response::HTTP_BAD_REQUEST);
 
         try {
-
-            match ($action) {
-                'block' =>
-                $this->managementService->blockUser(
-                    $dto->userIds
-                ),
-
-                'unblock' =>
-                $this->managementService->unblockUser(
-                    $dto->userIds
-                ),
-
-                'delete' =>
-                $this->managementService->deleteUser(
-                    $dto->userIds
-                )
-            };
-
+            $this->managementService->blockUser($dto->userIds);
         } catch (UserManagementException $e) {
-            return $this->json(['status' => 'error', 'message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            return $this->json(
+                ['status' => 'error', 'message' => $e->getMessage()],
+                Response::HTTP_BAD_REQUEST
+            );
         }
 
         return $this->json(['status' => 'ok']);
     }
 
-    #[Route('/user/block', name: 'app_user_block', methods: ['POST'])]
-    public function blockUser(Request $request): Response
-    {
-        return $this->handleRequest($request, 'block');
-    }
-
     #[Route('/user/unblock', name: 'app_user_unblock', methods: ['POST'])]
     public function unblockUser(Request $request): Response
     {
-        return $this->handleRequest($request, 'unblock');
+        $dto = UserManagementDto::fromRequest($request);
+
+        if ($this->hasErrors($dto))
+            return $this->json(['status' => 'error'], Response::HTTP_BAD_REQUEST);
+
+        try {
+            $this->managementService->unblockUser($dto->userIds);
+        } catch (UserManagementException $e) {
+            return $this->json(
+                [
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        return $this->json(['status' => 'ok']);
     }
 
     #[Route('/user/delete', name: 'app_user_delete', methods: ['POST'])]
     public function deleteUser(Request $request): Response
     {
-        return $this->handleRequest($request, 'delete');
+        $dto = UserManagementDto::fromRequest($request);
+
+        if ($this->hasErrors($dto))
+            return $this->json(['status' => 'error'], Response::HTTP_BAD_REQUEST);
+
+        try {
+            $this->managementService->deleteUser($dto->userIds);
+        } catch (UserManagementException $e) {
+            return $this->json(
+                ['status' => 'error', 'message' => $e->getMessage()],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        return $this->json(['status' => 'ok']);
     }
 
     #[Route('/user/activate/{token}', name: 'app_user_activate', methods: ['GET'])]
@@ -94,7 +106,6 @@ final class UserController extends AbstractController
         if ($this->managementService->activateUser($token))
             return $this->render('user/success_user_activation.html.twig');
 
-        // i do not know what to do, so i just put it here
         $this->addFlash('error', 'Something went wrong!');
         return $this->redirectToRoute('app_index');
     }

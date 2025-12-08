@@ -7,15 +7,17 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use App\Dto\UserRegistrationDto;
 use App\Exception\RegistrationException;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserAuthenticationService
 {
+    private const TOKEN_SIZE = 16;
+
     public function __construct(
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $hasher,
@@ -23,6 +25,7 @@ class UserAuthenticationService
         private ValidatorInterface $validator,
         private RequestStack $requestStack,
         private Security $security,
+        private string $mailerFrom
     ) {
     }
 
@@ -75,23 +78,22 @@ class UserAuthenticationService
     // simple random token generator
     private function generateVerificationToken(): string
     {
-        return bin2hex(random_bytes(16));
+        return bin2hex(random_bytes(self::TOKEN_SIZE));
     }
 
     // queued email sending
     private function sendVerificationEmail(User $user): void
     {
         // or use url generator
-        $email = new Email()
-            ->from('damir.kasen92@gmail.com')
+        $email = new TemplatedEmail()
+            ->from($this->mailerFrom)
             ->to($user->getEmail())
             ->subject('Please confirm your email address')
-            ->html(
-                "<p>Thanks for registering. 
-                Please confirm your email by clicking 
-                <a href='https://{$this->requestStack->getCurrentRequest()->getHost()}/user/activate/{$user->getVerificationToken()}'>here</a>.
-                </p>"
-            );
+            ->htmlTemplate("emails/user-registration.html.twig")
+            ->context([
+                'host' => $this->requestStack->getCurrentRequest()->getHost(),
+                'token' => $user->getVerificationToken()
+            ]);
 
         $this->mailer->send($email);
     }
